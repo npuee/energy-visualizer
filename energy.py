@@ -156,8 +156,7 @@ def transform(data):
         'total_kwh': round(overall_total, 3),
         'avg_per_day_kwh': round(avg_per_day, 3),
         'min_day_kwh': round(min(total_values), 3) if total_values else 0,
-        'max_day_kwh': round(max(total_values), 3) if total_values else 0,
-        'days': len(dates)
+        'max_day_kwh': round(max(total_values), 3) if total_values else 0
     }
 
     return {
