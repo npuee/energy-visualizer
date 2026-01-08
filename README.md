@@ -24,16 +24,27 @@ This project is a Flask server and Plotly frontend for visualizing daily energy 
 		# then open http://localhost:8889 (or the port in settings.json)
 		```
 
+
 ## Docker Usage
 
-1. Build the image:
-	```bash
-		docker build -t energy-visualizer:latest .
-		```
-2. Run the container (mount your config if needed):
-		```bash
-		docker run -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" energy-visualizer
-		```
+You can use the provided `run.sh` script to create a default `settings.json` (if missing), build the Docker image, and run the container:
+
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+This will:
+- Create a default `settings.json` if it does not exist (edit it with your real credentials!)
+- Build the Docker image
+- Run the container, mounting your `settings.json` for configuration
+
+Alternatively, you can build and run manually:
+
+```bash
+docker build -t energy-visualizer:latest .
+docker run -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" energy-visualizer
+```
 
 ## Configuration
 
