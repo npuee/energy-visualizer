@@ -28,7 +28,7 @@ This project is a Flask server and Plotly frontend for visualizing daily energy 
 
 1. Build the image:
 	```bash
-		docker build -t energy-visualizer .
+		docker build -t energy-visualizer:latest .
 		```
 2. Run the container (mount your config if needed):
 		```bash
