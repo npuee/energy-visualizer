@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Energy Daily Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 16px; }
+      #chart { width: 100%; height: 500px; }
+      .summary { margin-top: 12px; display:flex; gap:16px; flex-wrap:wrap }
+      .card { padding:10px; border:1px solid #ddd; border-radius:6px; background:#fafafa }
+    </style>
+  </head>
+  <body>
+    <div id="chart"></div>
+    <div class="summary" id="summary"></div>
+    <div id="fetched" style="margin-top:8px; color:#666; font-size:0.9em"></div>
+
+    <script>
+      async function getData() {
+        const r = await fetch('/data');
+        return await r.json();
+      }
+
+      function render(data) {
+        const dates = data.dates;
+        const total = data.total;
+
+        const traces = [];
+        // Total as bar (colorful)
+        traces.push({ x: dates, y: total, type: 'bar', name: 'Total (all meters)', marker: { color: '#2298b2', line: { color: '#17607a', width: 1 }, opacity: 0.95 } });
+
+        // Color palette with different dash/marker patterns
+        const palette = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf'];
+        const styles = [
+          { color: palette[0], dash:'solid', symbol:'circle' },
+          { color: palette[1], dash:'dash', symbol:'square' },
+          { color: palette[2], dash:'dot', symbol:'diamond' },
+          { color: palette[3], dash:'dashdot', symbol:'cross' },
+          { color: palette[4], dash:'longdash', symbol:'x' },
+          { color: palette[5], dash:'longdashdot', symbol:'triangle-up' }
+        ];
+
+        // Per-meter lines: shorten long labels and show full label in hover
+        (data.series || []).forEach((s, idx) => {
+          const style = styles[idx % styles.length];
+          const shortLabel = (s.label && s.label.length > 40) ? s.label.slice(0, 37) + '...' : s.label;
+          const labelForLegend = s.display || shortLabel;
+            traces.push({
+              x: dates,
+              y: s.values,
+              type: 'scatter',
+              mode: 'lines+markers',
+              name: labelForLegend,
+              text: s.display || s.label,
+              hovertemplate: '%{y} kWh<extra></extra>',
+              line: { color: s.color || style.color, dash: style.dash, width: 2.5 },
+              marker: { size: 6, symbol: style.symbol, color: s.color || style.color }
+            });
+        });
+
+        const layout = {
+          title: 'Daily consumption (kWh)',
+          xaxis: { title: 'Date' },
+          yaxis: { title: 'kWh' },
+          // place legend horizontally at the bottom to avoid overlapping labels
+          legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.25 },
+          margin: { b: 120 }
+        };
+
+        Plotly.newPlot('chart', traces, layout, {responsive:true});
+
+        // Summary
+        const s = data.summary || {};
+        const summaryEl = document.getElementById('summary');
+        summaryEl.innerHTML = '';
+        const addCard = (title, value) => {
+          const d = document.createElement('div'); d.className='card';
+          d.innerHTML = `<strong>${title}</strong><div>${value}</div>`;
+          summaryEl.appendChild(d);
+        }
+        addCard('Days', s.days);
+        addCard('Total kWh', s.total_kwh);
+        addCard('Avg / day (kWh)', s.avg_per_day_kwh);
+        addCard('Min day (kWh)', s.min_day_kwh);
+        addCard('Max day (kWh)', s.max_day_kwh);
+        const fetchedEl = document.getElementById('fetched');
+        if (data.fetched_at_ts) {
+          // prefer epoch seconds to avoid ambiguous date parsing across browsers
+          try {
+            const d = new Date(Math.round(data.fetched_at_ts * 1000));
+            fetchedEl.textContent = 'Data fetched: ' + d.toLocaleString(undefined, { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, timeZoneName: 'short' });
+          } catch (e) {
+            fetchedEl.textContent = 'Data fetched: ' + data.fetched_at;
+          }
+        } else if (data.fetched_at) {
+          try {
+            const d = new Date(data.fetched_at);
+            fetchedEl.textContent = 'Data fetched: ' + d.toLocaleString(undefined, { timeZoneName: 'short' });
+          } catch (e) {
+            fetchedEl.textContent = 'Data fetched: ' + data.fetched_at;
+          }
+        } else {
+          fetchedEl.textContent = '';
+        }
+      }
+
+      (async ()=>{
+        const data = await getData();
+        render(data);
+      })();
+    </script>
+  </body>
+</html>
