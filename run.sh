@@ -26,7 +26,7 @@ fi
 # Build Docker image
 docker build -t energy-visualizer .
 
-# Run Docker container
+# Run Docker container with WSGI (Waitress)
 # Remove any previous container with the same name
 docker rm -f energy-visualizer-run 2>/dev/null || true
-docker run -d --name energy-visualizer-run -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" energy-visualizer
+docker run -d --name energy-visualizer-run -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" energy-visualizer python3 wsgi.py

@@ -14,5 +14,5 @@ COPY . .
 # Expose the port (from settings.json, default 8889)
 EXPOSE 8889
 
-# Run the Flask app
-CMD ["python3", "app.py"]
+# Run the app with WSGI (Waitress)
+CMD ["python3", "wsgi.py"]
