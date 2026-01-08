@@ -3,7 +3,7 @@
 
 This project is a Flask server and Plotly frontend for visualizing daily energy consumption from the Estfeed/Elering API. It supports caching, nicknames/colors for meters, and a modern UI.
 
-- ![Screenshot](https://raw.githubusercontent.com/npuee/energy-visualizer/main/docs/screenshot.png)
+- ![Screenshot](https://raw.githubusercontent.com/npuee/energy-visualizer/refs/heads/master/docs/Screenshot.png)
 
 ## Features
 ## Manually Refresh Data
