@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# Require settings.json to exist
+if [ ! -f settings.json ]; then
+  echo "ERROR: settings.json not found. Please copy settings.example.json and edit it with your credentials."
+  exit 1
+fi
+
 # Remove old Docker image if exists
 docker rmi -f elering-visualizer:latest 2>/dev/null || true
 
