@@ -25,7 +25,6 @@ fi
 
 # Load port from settings.json
 PORT=$(python3 -c "import json; s=json.load(open('/app/settings.json')); print(s.get('server_port', 8889))" 2>/dev/null || echo 8889)
-echo "Serving with Waitress on 0.0.0.0:$PORT"
 
 # Start the server
 exec python3 -m waitress --host=0.0.0.0 --port=$PORT app:app
