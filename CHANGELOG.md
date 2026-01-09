@@ -1,9 +1,6 @@
 
 # Changelog
 
-
-
-
 ## 2026-01-09
 - HTTP Basic Auth documented in README.md and added to settings.example.json
 - Fully optimized rewrite of energy.py (settings/cache handling, EIC matching, type hints, docs, modularity)

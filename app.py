@@ -1,8 +1,20 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, Response
 import time
 import os
 import json
 import energy
+def require_basic_auth():
+    creds = energy.get_basic_auth_creds()
+    if not creds:
+        return  # No auth required
+    auth = request.headers.get('Authorization')
+    if not energy.check_basic_auth(auth):
+        return Response(
+            'Authentication required',
+            401,
+            {'WWW-Authenticate': 'Basic realm="Login Required"'}
+        )
+
 
 app = Flask(__name__, template_folder='templates')
 
@@ -21,11 +33,17 @@ SERVER_HOST = _APP_SETTINGS.get('host', '0.0.0.0')
 
 @app.route('/')
 def index():
+    auth_resp = require_basic_auth()
+    if auth_resp:
+        return auth_resp
     return render_template('index.html')
 
 
 @app.route('/data')
 def data():
+    auth_resp = require_basic_auth()
+    if auth_resp:
+        return auth_resp
     # support clearing cache via query param `?clear_cache=1` or `?refresh=1`
     clear = request.args.get('clear_cache') or request.args.get('refresh')
     if clear:

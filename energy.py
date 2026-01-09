@@ -13,8 +13,33 @@ from datetime import datetime, timezone
 import requests
 
 BASE_DIR = os.path.dirname(__file__)
+
 SETTINGS_FILE = os.path.join(BASE_DIR, 'settings.json')
 CACHE_FILE = os.path.join(BASE_DIR, 'api_cache.json')
+
+# --- Basic Auth Support ---
+import base64
+
+def get_basic_auth_creds() -> Optional[tuple[str, str]]:
+    """Return (username, password) tuple from settings.json if present, else None."""
+    user = _SETTINGS.get('basic_auth_user')
+    pwd = _SETTINGS.get('basic_auth_password')
+    if user and pwd:
+        return user, pwd
+    return None
+
+def check_basic_auth(auth_header: str) -> bool:
+    """Check HTTP Basic Auth header against settings.json credentials."""
+    creds = get_basic_auth_creds()
+    if not creds or not auth_header or not auth_header.startswith('Basic '):
+        return False
+    try:
+        b64 = auth_header.split(' ', 1)[1]
+        decoded = base64.b64decode(b64).decode('utf-8')
+        user, pwd = decoded.split(':', 1)
+        return (user, pwd) == creds
+    except Exception:
+        return False
 
 def load_settings() -> Dict[str, Any]:
     """Load settings from settings.json, return empty dict on failure."""
