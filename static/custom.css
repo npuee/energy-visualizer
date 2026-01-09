@@ -1,5 +1,9 @@
 body { font-family: Arial, sans-serif; margin: 8px; }
-#chart {width: 100%; height: 480px; }
+#chart {
+  width: 100%;
+  height: 480px;
+  margin-top: 0.5vh !important;
+}
 .card { padding:1px 4px; border:1px solid #ddd; border-radius:6px; background:#fafafa; min-width: 70px; }
 #summary .card-title { font-size: 0.95rem; }
 #summary .card-text { font-size: 1.1rem; }

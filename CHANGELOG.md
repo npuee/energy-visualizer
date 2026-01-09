@@ -2,6 +2,10 @@
 # Changelog
 
 ## 2026-01-09
+- Elering API credentials are now set via .env file (see .env.example), not settings.json
+- Updated README.md to document .env usage and Docker --env-file
+- Updated run.sh and Docker instructions for .env
+- Cleaned up settings.json (removed auth_data)
 - Added a dedicated 'HTTP Basic Authentication' section to the README for clarity and usage instructions.
 - Summary values (total, average, min, max, today) now use 2 digits after the decimal point instead of 3.
 - HTTP Basic Auth documented in README.md and added to settings.example.json

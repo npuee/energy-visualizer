@@ -8,8 +8,6 @@ if [ ! -f settings.json ]; then
   exit 1
 fi
 
-
-
 # Remove old Docker image if exists
 docker rmi -f elering-visualizer:latest 2>/dev/null || true
 
@@ -23,4 +21,4 @@ docker build -t elering-visualizer:latest .
 # Run Docker container with WSGI (Waitress)
 # Remove any previous container with the same name
 docker rm -f elering-visualizer-run 2>/dev/null || true
-docker run -d --name elering-visualizer-run --restart always -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" elering-visualizer
+docker run -d --name elering-visualizer-run --restart always -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" --env-file "$PWD/.env" elering-visualizer

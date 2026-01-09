@@ -13,6 +13,9 @@ This project is a Flask server and Plotly frontend for visualizing daily energy 
 	python3 -m pip install -r requirements.txt
 	```
 2. Rename `settings.example.json` to `settings.json` and make changes.
+3. Copy `.env.example` to `.env` and fill in your Elering API credentials:
+	- `AUTH_CLIENT_ID=your_client_id_here`
+	- `AUTH_CLIENT_SECRET=your_client_secret_here`
 3. Run the server with WSGI (Waitress):
 	```bash
 	python3 wsgi.py
@@ -29,23 +32,32 @@ chmod +x run.sh
 ./run.sh
 ```
 
+
 This will:
 - Build the Docker image
 - Run the container, mounting your `settings.json` for configuration
+- Load Elering API credentials from your `.env` file
+
 
 Alternatively, you can build and run manually:
 
 ```bash
 docker build -t energy-visualizer:latest .
-docker run -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" energy-visualizer
+docker run -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" --env-file .env energy-visualizer
 ```
 
 
 ## Configuration
 
 
+
+### Environment Variables for Elering API
+
+Set your Elering API credentials in a `.env` file (see `.env.example`):
+- `AUTH_CLIENT_ID` (your Elering API client ID)
+- `AUTH_CLIENT_SECRET` (your Elering API client secret)
+
 Edit `settings.json` to set:
-- `auth_data` for Elering API (see below)
 - `cache_ttl` (seconds)
 - `eic_nicknames` for meter display names and colors
 - `basic_auth_user` and `basic_auth_password` (optional, enables HTTP Basic Auth for all endpoints)

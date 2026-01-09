@@ -11,15 +11,15 @@ from typing import Any, Dict, List, Tuple, Optional
 from collections import defaultdict
 from datetime import datetime, timezone
 import requests
+import base64
 
 BASE_DIR = os.path.dirname(__file__)
 
 SETTINGS_FILE = os.path.join(BASE_DIR, 'settings.json')
 CACHE_FILE = os.path.join(BASE_DIR, 'api_cache.json')
 
-# --- Basic Auth Support ---
-import base64
 
+# --- Basic Auth Support ---
 def get_basic_auth_creds() -> Optional[tuple[str, str]]:
     """Return (username, password) tuple from settings.json if present, else None."""
     user = _SETTINGS.get('basic_auth_user')
@@ -52,9 +52,10 @@ def load_settings() -> Dict[str, Any]:
 _SETTINGS = load_settings()
 CACHE_TTL: int = int(_SETTINGS.get('cache_ttl', 3600))
 EIC_NICKNAMES: Dict[str, Any] = _SETTINGS.get('eic_nicknames', {})
-AUTH_DATA = _SETTINGS.get('auth_data')
-ELERING_API_TOKEN_URL = _SETTINGS.get('elering_api_token_url', "https://kc.elering.ee/realms/elering-sso/protocol/openid-connect/token")
-ELERING_API_URL = _SETTINGS.get('elering_api_url', "https://estfeed.elering.ee/api/public/v1/metering-data")
+AUTH_CLIENT_ID = os.environ.get('AUTH_CLIENT_ID')
+AUTH_CLIENT_SECRET = os.environ.get('AUTH_CLIENT_SECRET')
+ELERING_API_TOKEN_URL = "https://kc.elering.ee/realms/elering-sso/protocol/openid-connect/token"
+ELERING_API_URL = "https://estfeed.elering.ee/api/public/v1/metering-data"
 
 def fetch_remote_data() -> Tuple[Optional[Any], Optional[float]]:
     """
@@ -75,47 +76,42 @@ def fetch_remote_data() -> Tuple[Optional[Any], Optional[float]]:
 
     # Fetch from remote
     try:
-        if AUTH_DATA:
-            # Obtain token
-            # Always add grant_type=client_credentials to the token request
-            token_data = dict(AUTH_DATA) if AUTH_DATA else {}
-            token_data['grant_type'] = 'client_credentials'
-            token_resp = requests.post(
-                ELERING_API_TOKEN_URL,
-                data=token_data,
-                headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                timeout=10
-            )
-            token_resp.raise_for_status()
-            token = token_resp.json().get('access_token')
-            headers = {'Authorization': f'Bearer {token}'}
-            now_dt = datetime.now(timezone.utc)
-            start_of_month = now_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            params = {
-                'startDateTime': start_of_month.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
-                'endDateTime': now_dt.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
-                'resolution': 'one_day'
-            }
-            resp = requests.get(ELERING_API_URL, params=params, headers=headers, timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
-        else:
-            raise RuntimeError('No auth_data in settings.json')
-
+        if not AUTH_CLIENT_ID or not AUTH_CLIENT_SECRET:
+            raise RuntimeError('No Elering API credentials found in environment variables (AUTH_CLIENT_ID, AUTH_CLIENT_SECRET)')
+        # Obtain token
+        token_data = {
+            "client_id": AUTH_CLIENT_ID,
+            "client_secret": AUTH_CLIENT_SECRET,
+            "grant_type": "client_credentials"
+            }        
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        token_resp = requests.post(ELERING_API_TOKEN_URL, data=token_data, headers=headers)
+        token_resp.raise_for_status()
+        token = token_resp.json().get('access_token')
+        headers = {'Authorization': f'Bearer {token}'}
+        now_dt = datetime.now(timezone.utc)
+        start_of_month = now_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        params = {
+            'startDateTime': start_of_month.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+            'endDateTime': now_dt.strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+            'resolution': 'one_day'
+        }
+        resp = requests.get(ELERING_API_URL, params=params, headers=headers, timeout=30)
+        data = resp.json()
         # Write cache atomically
         tmp = CACHE_FILE + '.tmp'
         with open(tmp, 'w') as cf:
             json.dump({'_cached_at': ts, 'data': data}, cf)
-            cf.flush()
             try:
                 os.fsync(cf.fileno())
             except Exception:
                 pass
         os.replace(tmp, CACHE_FILE)
-        print(f'Wrote cache to {CACHE_FILE}')
+        print(f'Wrote cache to {CACHE_FILE}', flush=True)
         return data, ts
+
     except Exception as e:
-        print('Fetch error:', e)
+        print('Fetch error:', e, flush=True)
         # On fetch error, try returning any cached data even if stale
         if os.path.exists(CACHE_FILE):
             try:
@@ -123,11 +119,10 @@ def fetch_remote_data() -> Tuple[Optional[Any], Optional[float]]:
                     cached = json.load(cf)
                 return cached.get('data'), cached.get('_cached_at', None)
             except Exception as e2:
-                print('Failed to read stale cache:', e2)
+                print('Failed to read stale cache:', e2, flush=True)
         return None, None
 
 def load_data() -> Tuple[Any, float]:
-    """Return (data, timestamp). If no data, returns empty list and current time."""
     data, ts = fetch_remote_data()
     if data:
         return data, ts
