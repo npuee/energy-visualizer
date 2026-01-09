@@ -12,7 +12,7 @@ This project is a Flask server and Plotly frontend for visualizing daily energy 
 	```bash
 	python3 -m pip install -r requirements.txt
 	```
-2. Configure your settings in `settings.json` (see below).
+2. Rename `settings.example.json` to `settings.json` and make changes.
 3. Run the server with WSGI (Waitress):
 	```bash
 	python3 wsgi.py
@@ -47,7 +47,6 @@ docker run -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" energy-vis
 Edit `settings.json` to set:
 - `auth_data` for Elering API (see below)
 - `cache_ttl` (seconds)
-- `server_port` (server always listens on 0.0.0.0)
 - `eic_nicknames` for meter display names and colors
 - `basic_auth_user` and `basic_auth_password` (optional, enables HTTP Basic Auth for all endpoints)
 
