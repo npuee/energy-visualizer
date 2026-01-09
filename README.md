@@ -97,19 +97,6 @@ This will clear the cache and trigger a new data fetch on the next request.
 		}
 		```
 
-Example:
-```json
-{
-	"auth_data": { "client_id": "...", "client_secret": "...", "grant_type": "client_credentials" },
-	"cache_ttl": 3600,
-	"server_port": 8889,
-	"host": "0.0.0.0",
-	"eic_nicknames": {
-		"38ZEE-00261472-Y": { "nick": "Shortname.", "color": "#1f77b6" }
-	}
-}
-```
-
 ## Security
 
 - `settings.json` is in `.gitignore` and should not be committed to version control.
