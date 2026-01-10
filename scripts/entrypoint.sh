@@ -17,21 +17,16 @@ if [ -z "$AUTH_CLIENT_ID" ] || [ -z "$AUTH_CLIENT_SECRET" ]; then
   exit 1
 fi
 
-# Ensure settings.json exists, create default if missing
+# Ensure settings.json exists, create default if missing (do not copy/rename)
 if [ ! -f /app/settings.json ]; then
-  if [ -f /app/app/settings.example.json ]; then
-    cp /app/app/settings.example.json /app/settings.json
-    echo "settings.json not found, copied default settings.example.json to /app/settings.json."
-  else
-    echo "settings.example.json not found in /app/app; creating minimal settings.json"
-    cat > /app/settings.json <<'EOF'
+  echo "settings.json not found, creating default settings.json."
+  cat > /app/settings.json <<'EOF'
 {
   "cache_ttl": 3600,
   "server_port": 8889,
   "eic_nicknames": {}
 }
 EOF
-  fi
 fi
 
 # Load port from settings.json

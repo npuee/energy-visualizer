@@ -18,7 +18,7 @@ RUN apk add --no-cache gcc musl-dev libffi-dev \
     && rm -rf /root/.cache /root/.pip /tmp/*
 
 
-COPY app/ ./app/
+COPY app/ .
 COPY templates/ ./templates/
 COPY static/ ./static/
 COPY scripts/entrypoint.sh ./scripts/entrypoint.sh
@@ -33,15 +33,17 @@ RUN rm -rf /usr/share/doc /usr/share/man /usr/share/locale || true
 # Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-COPY app.py ./
-COPY energy.py ./
+COPY app/ .
 COPY templates/ ./templates/
 COPY static/ ./static/
-COPY entrypoint.sh ./
+COPY scripts/entrypoint.sh ./scripts/entrypoint.sh
+
+# Ensure entrypoint is executable
+RUN chmod +x ./scripts/entrypoint.sh || true
 
 # No need to remove build tools in final image (not installed)
 
 # Expose the port (from settings.json, default 8889)
 EXPOSE 8889
 
-ENTRYPOINT ["/bin/sh", "scripts/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "./scripts/entrypoint.sh"]

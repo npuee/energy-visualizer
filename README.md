@@ -12,44 +12,63 @@ This project is a Flask server and Plotly frontend for visualizing daily energy 
 	```bash
 	python3 -m pip install -r requirements.txt
 	```
-2. Rename `settings.example.json` to `settings.json` and make changes.
+2. You can keep a local `settings.json` for overrides, but the container will create a default `settings.json` at runtime when missing. See `app/settings.example.json` for defaults.
 3. Copy `.env.example` to `.env` and fill in your Elering API credentials:
-	- `AUTH_CLIENT_ID=your_client_id_here`
-	- `AUTH_CLIENT_SECRET=your_client_secret_here`
-3. Run the server:
-	- For production (recommended) run with Waitress:
-		```bash
-		python3 -m waitress --host=0.0.0.0 --port=8889 app:app
-		# then open http://localhost:8889 (or the port in settings.json)
-		```
-	- For development use the Flask dev server:
-		```bash
-		python3 app.py
-		```
+		- `AUTH_CLIENT_ID=your_client_id_here`
+		- `AUTH_CLIENT_SECRET=your_client_secret_here`
+4. Run the server:
+		- Use the provided helper script (recommended):
+			```bash
+			chmod +x scripts/run.sh
+			./scripts/run.sh
+			# then open http://localhost:8889
+			```
+			- `scripts/run.sh` will:
+				- build the Docker image from the project root,
+				- mount a host `settings.json` into the container if present (read-only), and
+				- pass `--env-file .env` to the container if `.env` exists.
+		- For production (without Docker) run with Waitress:
+			```bash
+			python3 -m waitress --host=0.0.0.0 --port=8889 app:app
+			```
+		- For development use the Flask dev server:
+			```bash
+			python3 -m flask run --host=0.0.0.0 --port=8889
+			```
 
 
 ## Docker Usage
 
-You can use the provided `run.sh` script to build the Docker image, and run the container:
+You can use the provided `scripts/run.sh` script to build the Docker image and run the container:
 
 ```bash
-chmod +x run.sh
-./run.sh
+chmod +x scripts/run.sh
+./scripts/run.sh
 ```
+
+Note: `scripts/run.sh` builds the Docker image (from the project root) before starting the container.
 
 
 This will:
 - Build the Docker image
 - Run the container (the container will create a default `settings.json` if one is not provided)
+- Mount your host `settings.json` into the container if present (so you can keep secrets/config out of the image)
 - Load Elering API credentials from your `.env` file
 
 
-Alternatively, you can build and run manually:
+Alternatively, you can build and run manually (or use `scripts/build.sh` for multi-arch builds):
 
 ```bash
 docker build -t energy-visualizer:latest .
 docker run -p 8889:8889 --env-file .env energy-visualizer
 ```
+
+For multi-arch images, use the provided `scripts/build.sh` which uses `docker buildx`:
+
+```bash
+chmod +x scripts/build.sh
+./scripts/build.sh --push myuser/energy-visualizer latest  # pushes multi-arch to registry
+``` 
 
 
 ## Configuration
@@ -66,6 +85,12 @@ Edit `settings.json` to set:
 - `cache_ttl` (seconds)
 - `eic_nicknames` for meter display names and colors
 - `basic_auth_user` and `basic_auth_password` (optional, enables HTTP Basic Auth for all endpoints)
+
+Notes about layout and files:
+- Application Python package: `app/` (contains `__init__.py`, `energy.py`, `settings.example.json`)
+- Startup entrypoint (container): `scripts/entrypoint.sh` (creates `/app/settings.json` if missing and starts Waitress)
+- Build/run helpers: `scripts/run.sh`, `scripts/build.sh` (multi-arch)
+- Templates: `templates/`, Static assets: `static/`
 
 ### HTTP Basic Authentication
 
