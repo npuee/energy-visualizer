@@ -17,15 +17,15 @@ This project is a Flask server and Plotly frontend for visualizing daily energy 
 	- `AUTH_CLIENT_ID=your_client_id_here`
 	- `AUTH_CLIENT_SECRET=your_client_secret_here`
 3. Run the server:
-		- For production (recommended) run with Waitress:
-			```bash
-			python3 -m waitress --host=0.0.0.0 --port=8889 app:app
-			# then open http://localhost:8889 (or the port in settings.json)
-			```
-		- For development use the Flask dev server:
-			```bash
-			python3 app.py
-			```
+	- For production (recommended) run with Waitress:
+		```bash
+		python3 -m waitress --host=0.0.0.0 --port=8889 app:app
+		# then open http://localhost:8889 (or the port in settings.json)
+		```
+	- For development use the Flask dev server:
+		```bash
+		python3 app.py
+		```
 
 
 ## Docker Usage
