@@ -124,22 +124,6 @@ curl "http://localhost:8889/data?clear_cache=1"
 
 This will clear the cache and trigger a new data fetch on the next request.
 
-## Viewing Logs
-
-- When running in Docker, follow container logs to see startup messages and (if enabled) request logs:
-
-```bash
-docker logs -f elering-visualizer-run
-```
-
-- To run the container in the foreground so you can see logs directly in your terminal:
-
-```bash
-docker rm -f elering-visualizer-run || true
-docker run --rm --name elering-visualizer-run -p 8889:8889 -v "$PWD/settings.json":/app/settings.json:ro --env-file "$PWD/.env" elering-visualizer
-```
-
-- To enable request logging, set `enable_request_logging` to `true` in your host `settings.json` before starting the container.
 
 ### How to Get Elering API Credentials
 
