@@ -12,6 +12,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 import requests
 import base64
+import time as _time
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -76,14 +77,16 @@ def fetch_remote_data() -> Tuple[Optional[Any], Optional[float]]:
 
     # Fetch from remote
     try:
+
         if not AUTH_CLIENT_ID or not AUTH_CLIENT_SECRET:
             raise RuntimeError('No Elering API credentials found in environment variables (AUTH_CLIENT_ID, AUTH_CLIENT_SECRET)')
+        fetch_start = _time.time()
         # Obtain token
         token_data = {
             "client_id": AUTH_CLIENT_ID,
             "client_secret": AUTH_CLIENT_SECRET,
             "grant_type": "client_credentials"
-            }        
+        }
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         token_resp = requests.post(ELERING_API_TOKEN_URL, data=token_data, headers=headers)
         token_resp.raise_for_status()
@@ -98,6 +101,8 @@ def fetch_remote_data() -> Tuple[Optional[Any], Optional[float]]:
         }
         resp = requests.get(ELERING_API_URL, params=params, headers=headers, timeout=30)
         data = resp.json()
+        fetch_end = _time.time()
+        print(f"API fetch took {fetch_end - fetch_start:.2f} seconds", flush=True)
         # Write cache atomically
         tmp = CACHE_FILE + '.tmp'
         with open(tmp, 'w') as cf:

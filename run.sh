@@ -2,10 +2,15 @@
 set -e
 
 
-# Require settings.json to exist
+# Generate default settings.json if not present
 if [ ! -f settings.json ]; then
-  echo "ERROR: settings.json not found. Please copy settings.example.json and edit it with your credentials."
-  exit 1
+  if [ -f settings.example.json ]; then
+    echo "settings.json not found. Copying settings.example.json as default."
+    cp settings.example.json settings.json
+  else
+    echo "ERROR: Neither settings.json nor settings.example.json found. Cannot continue."
+    exit 1
+  fi
 fi
 
 # Remove old Docker image if exists

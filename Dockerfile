@@ -17,12 +17,12 @@ RUN apk add --no-cache gcc musl-dev libffi-dev \
     && apk del gcc musl-dev libffi-dev \
     && rm -rf /root/.cache /root/.pip /tmp/*
 
-# Copy only needed files
+
 COPY app.py ./
 COPY energy.py ./
-COPY wsgi.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
+COPY entrypoint.sh ./
 
 FROM python:3.11-alpine
 WORKDIR /app
@@ -34,17 +34,15 @@ RUN rm -rf /usr/share/doc /usr/share/man /usr/share/locale || true
 # Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-# Copy app files
 COPY app.py ./
 COPY energy.py ./
-COPY wsgi.py ./
 COPY templates/ ./templates/
 COPY static/ ./static/
+COPY entrypoint.sh ./
 
 # No need to remove build tools in final image (not installed)
 
 # Expose the port (from settings.json, default 8889)
 EXPOSE 8889
 
-# Run the app with WSGI (Waitress)
-CMD ["python3", "wsgi.py"]
+ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
