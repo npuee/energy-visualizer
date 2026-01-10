@@ -1,4 +1,15 @@
--# Changelog
+# Changelog
+
+## 2026-01-10
+- Refactor: reorganized repository into `app/` (Python package) and `scripts/` (helpers and entrypoint)
+- Moved `app.py` and `energy.py` into `app/`; `app/__init__.py` exposes the Flask `app` object
+- Added `scripts/entrypoint.sh` (container startup) and `scripts/run.sh` (build/run helper)
+- Dockerfile updated to copy `app/` and `scripts/entrypoint.sh`; entrypoint creates `/app/settings.json` at runtime if missing
+- `scripts/run.sh` will mount host `settings.json` into container if present and pass host `.env` as `--env-file`
+- `scripts/build.sh` updated to support multi-arch `docker buildx` builds and accepts `--push`
+- Switched frontend dependencies (Bootstrap, Plotly) to local `static/` files
+- README updated with new layout, script usage, and config instructions
+ - Added optional request logging controlled by `settings.json` (`enable_request_logging`) and improved container logging via `waitress-serve`
 
 ## 2026-01-09
 - Added entrypoint.sh for container startup and Waitress server management

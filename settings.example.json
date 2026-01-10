@@ -1,9 +1,6 @@
 {
-  "auth_data": {
-    "client_id": "your_client_id",
-    "client_secret": "your_client_secret"
-  },
   "cache_ttl": 3600,
+  "enable_request_logging": false,
   "server_port": 8889,
   "eic_nicknames": {
     "38ZEE-00261472-Y": { "nick": "Meter 1", "color": "#1f77b6" },

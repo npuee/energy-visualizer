@@ -7,44 +7,69 @@ This project is a Flask server and Plotly frontend for visualizing daily energy 
 
 
 ## Quick Start (Local)
+1. Configuration
 
-1. Install dependencies:
-	```bash
-	python3 -m pip install -r requirements.txt
-	```
-2. Rename `settings.example.json` to `settings.json` and make changes.
-3. Copy `.env.example` to `.env` and fill in your Elering API credentials:
-	- `AUTH_CLIENT_ID=your_client_id_here`
-	- `AUTH_CLIENT_SECRET=your_client_secret_here`
-3. Run the server with WSGI (Waitress):
-	```bash
-	python3 wsgi.py
-	# then open http://localhost:8889 (or the port in settings.json)
-	```
+- You can keep a local `settings.json` for overrides. If missing, the container will create a default `/app/settings.json` at runtime. See `settings.example.json`.
 
+- Copy `.env.example` to `.env` and set your Elering API credentials:
+
+```env
+AUTH_CLIENT_ID=your_client_id_here
+AUTH_CLIENT_SECRET=your_client_secret_here
+```
+
+2. Run the server
+
+- Recommended (via helper script / Docker):
+
+```bash
+chmod +x scripts/run.sh
+./scripts/run.sh
+# then open: http://localhost:8889
+```
+
+`scripts/run.sh` will build the Docker image (from the project root), mount a host `settings.json` into the container if present (read-only), and pass `--env-file .env` to the container if `.env` exists.
+
+
+- Run without Docker (production with Waitress):
+
+```bash
+python3 -m pip install -r requirements.txt
+python3 -m waitress --host=0.0.0.0 --port=8889 app:app
+```
 
 ## Docker Usage
 
-You can use the provided `run.sh` script to build the Docker image, and run the container:
+You can use the provided `scripts/run.sh` script to build the Docker image and run the container:
 
 ```bash
-chmod +x run.sh
-./run.sh
+chmod +x scripts/run.sh
+./scripts/run.sh
 ```
+
+Note: `scripts/run.sh` builds the Docker image (from the project root) before starting the container.
 
 
 This will:
 - Build the Docker image
-- Run the container, mounting your `settings.json` for configuration
+- Run the container (the container will create a default `settings.json` if one is not provided)
+- Mount your host `settings.json` into the container if present (so you can keep secrets/config out of the image)
 - Load Elering API credentials from your `.env` file
 
 
-Alternatively, you can build and run manually:
+Alternatively, you can build and run manually (or use `scripts/build.sh` for multi-arch builds):
 
 ```bash
 docker build -t energy-visualizer:latest .
-docker run -p 8889:8889 -v "$PWD/settings.json:/app/settings.json:ro" --env-file .env energy-visualizer
+docker run -p 8889:8889 --env-file .env energy-visualizer
 ```
+
+For multi-arch images, use the provided `scripts/build.sh` which uses `docker buildx`:
+
+```bash
+chmod +x scripts/build.sh
+./scripts/build.sh --push myuser/energy-visualizer latest  # pushes multi-arch to registry
+``` 
 
 
 ## Configuration
@@ -61,6 +86,13 @@ Edit `settings.json` to set:
 - `cache_ttl` (seconds)
 - `eic_nicknames` for meter display names and colors
 - `basic_auth_user` and `basic_auth_password` (optional, enables HTTP Basic Auth for all endpoints)
+- `enable_request_logging` (optional, boolean). When `true`, the server logs incoming HTTP requests and responses to stdout so you can view them with `docker logs -f` or in the container output. Default: `false`.
+
+Notes about layout and files:
+- Application Python package: `app/` (contains `__init__.py`, `energy.py`, `settings.example.json`)
+- Startup entrypoint (container): `scripts/entrypoint.sh` (creates `/app/settings.json` if missing and starts Waitress)
+- Build/run helpers: `scripts/run.sh`, `scripts/build.sh` (multi-arch)
+- Templates: `templates/`, Static assets: `static/`
 
 ### HTTP Basic Authentication
 
@@ -92,6 +124,7 @@ curl "http://localhost:8889/data?clear_cache=1"
 
 This will clear the cache and trigger a new data fetch on the next request.
 
+
 ### How to Get Elering API Credentials
 
 1. Go to [Estfeed Elering API Guide](https://estfeed.elering.ee/account-settings/efkp-api-guide)
@@ -99,15 +132,12 @@ This will clear the cache and trigger a new data fetch on the next request.
 3. Follow the instructions to create an API client:
 		- Register a new API client.
 		- Copy your `client_id` and `client_secret`.
-		- Set `grant_type` to `client_credentials`.
-4. Add these values to your `settings.json`:
-		```json
-		"auth_data": {
-			"client_id": "your_client_id",
-			"client_secret": "your_client_secret",
-			"grant_type": "client_credentials"
-		}
-		```
+4. Store these credentials in your `.env` file (see `.env.example`) so they are loaded as environment variables by the application:
+	```env
+	AUTH_CLIENT_ID=your_client_id_here
+	AUTH_CLIENT_SECRET=your_client_secret_here
+	```
+
 
 ## Security
 

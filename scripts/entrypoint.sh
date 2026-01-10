@@ -1,10 +1,11 @@
-echo "Starting Elering Visualizer..."
-#!/bin/bash
+#!/bin/sh
 set -e
+
+echo "Starting Elering Visualizer..."
 
 # Activate virtualenv if present
 if [ -f /app/venv/bin/activate ]; then
-  source /app/venv/bin/activate
+  . /app/venv/bin/activate
 fi
 
 # Print environment info for debugging
@@ -16,10 +17,16 @@ if [ -z "$AUTH_CLIENT_ID" ] || [ -z "$AUTH_CLIENT_SECRET" ]; then
   exit 1
 fi
 
-# Ensure settings.json exists, create default if missing
+# Ensure settings.json exists, create default if missing (do not copy/rename)
 if [ ! -f /app/settings.json ]; then
-  echo "{\n  \"cache_ttl\": 3600,\n  \"server_port\": 8889,\n  \"eic_nicknames\": {}\n}" > /app/settings.json
-  echo "settings.json not found, created default settings.json."
+  echo "settings.json not found, creating default settings.json."
+  cat > /app/settings.json <<'EOF'
+{
+  "cache_ttl": 3600,
+  "server_port": 8889,
+  "eic_nicknames": {}
+}
+EOF
 fi
 
 # Load port from settings.json
