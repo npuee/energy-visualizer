@@ -18,11 +18,10 @@ RUN apk add --no-cache gcc musl-dev libffi-dev \
     && rm -rf /root/.cache /root/.pip /tmp/*
 
 
-COPY app.py ./
-COPY energy.py ./
+COPY app/ ./app/
 COPY templates/ ./templates/
 COPY static/ ./static/
-COPY entrypoint.sh ./
+COPY scripts/entrypoint.sh ./scripts/entrypoint.sh
 
 FROM python:3.11-alpine
 WORKDIR /app
@@ -45,4 +44,4 @@ COPY entrypoint.sh ./
 # Expose the port (from settings.json, default 8889)
 EXPOSE 8889
 
-ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "scripts/entrypoint.sh"]
