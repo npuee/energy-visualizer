@@ -1,16 +1,10 @@
-# Unreleased (dev branch)
-- Added entrypoint.sh for container startup and Waitress server management
-- Dockerfile now uses entrypoint.sh as ENTRYPOINT and removes wsgi.py
-- entrypoint.sh checks for required environment variables and creates default settings.json if missing
-- Switched Bootstrap and Plotly dependencies in index.html to use local static files instead of CDN links
-
-
-# Changelog
+-# Changelog
 
 ## 2026-01-09
 - Added entrypoint.sh for container startup and Waitress server management
 - Dockerfile now uses entrypoint.sh as ENTRYPOINT and removes wsgi.py
 - entrypoint.sh checks for required environment variables and creates default settings.json if missing
+- Switched Bootstrap and Plotly dependencies in index.html to use local static files instead of CDN links
 - Elering API credentials are now set via .env file (see .env.example), not settings.json
 - Updated README.md to document .env usage and Docker --env-file
 - Updated run.sh and Docker instructions for .env
