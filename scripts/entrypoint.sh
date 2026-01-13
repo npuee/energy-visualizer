@@ -23,8 +23,13 @@ if [ ! -f /app/settings.json ]; then
   cat > /app/settings.json <<'EOF'
 {
   "cache_ttl": 3600,
+  "enable_request_logging": false,
   "server_port": 8889,
-  "eic_nicknames": {}
+  "eic_nicknames": {
+    "38ZEE-00261472-Y": { "nick": "Meter 1", "color": "#1f77b6" },
+    "38ZEE-00475676-2": { "nick": "Meter 2", "color": "#b61f1f" },
+    "38ZEE-00480072-U": { "nick": "Meter 3", "color": "#a06a2c" }
+  }
 }
 EOF
 fi
